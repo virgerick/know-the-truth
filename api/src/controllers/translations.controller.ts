@@ -29,12 +29,12 @@ const getAllLanguages = async () => {
 }
 
 const getVersionByLanguage=(language:string)=>{
-    const versions:string[]=[]
+    const versions:any=[]
     for(let p in translations){
         const item=translations[p];
         if(item["language"]===language){
-            console.log(item);
-            versions.push(item.translation)
+            //console.log(item);
+            versions.push(item)
         }
             
     }

@@ -29,6 +29,8 @@ router.get('/translation/:language', async (req, res) => {
     console.log(language);
     
     const versions= TranstationsController.getVersionByLanguage(language);
+    console.log(versions);
+    
     return res.json(versions)
 })
 

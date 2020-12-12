@@ -1,61 +1,108 @@
+
 import fs from 'fs'
-
-const staticBasePath = './assets/resources';
+import { Books } from '../enums/Books';
+import { IBible } from '../interfaces/IBible';
+import { IBook } from '../interfaces/IBook';
+import { IChapter } from '../interfaces/IChapter';
+import { IVerse } from '../interfaces/IVerse';
+import { ITranslation } from '../interfaces/ITranslation'
+ const translations:Array<ITranslation> = require('../assets/translations.json')
 // export const verses: any = []
+export const bibles: Array<IBible> = []
+export const loadBible =() => {
+    try {
+        if(translations!==null){
+            for (const key in translations) {
+                if (Object.prototype.hasOwnProperty.call(translations, key)) {
+                    const element = translations[key];
+                    loadVerses(element);
+                }
+            }
 
-export const loadVerses = async (fileName: string):Promise<Array<any>> => {
+        }
+        
+    } catch (error) {
+        console.error(error);
+        
+    }
+
+}
+export const loadVerses = async (translation: ITranslation): Promise<Array<any>> => {
     // assets/resources/Spanish__Reina_Valera_(1909)__valera__LTR.txt
     // let result:string='';
-    const verses:Array<any>=[]
+
+    const bible: IBible = {
+        id: Number(translation.id),
+        language: translation.language,
+        abbreviation: translation.abbreviation,
+        textDirection: translation.textdirection,
+        books: new Array<IBook>()
+    }
+
+    const verses: Array<any> = []
     try {
-        const path: string = `./src/assets/resources/${fileName}.txt`;
-        const nameSplit: Array<string> = fileName.split('__');
-        const direction: string = nameSplit[nameSplit.length - 1];
-        const version: string = nameSplit[nameSplit.length - 2];
+        const path: string = `./src/assets/resources/${translation.filename}.txt`;
 
-        const file= await fs.readFileSync(path, 'utf8')//, (err, data) => {
-        
-        
-            // // console.log(data);
-            // const array = data.toString().split('||');
-            //     const verse = {
-            //         direction,
-            //         version,
-            //         book_nr: array[0],
-            //         chapter_nr: array[1],
-            //         verse_nr: array[2],
-            //         verse: array[3],
 
-            //     }
-            //     // console.log(verse);
-
-            //     verses.push(verse);
-
-            
-          
+        const file = await fs.readFileSync(path, 'utf8')
         if (file != null) {
-          const lines =file.split('\n');
+            
+            const lines = file.split('\n');
             lines.forEach(line => {
                 const array = line.toString().split('||');
                 const verse = {
-                    direction,
-                    version,
                     book_nr: array[0],
                     chapter_nr: array[1],
                     verse_nr: array[2],
                     verse: array[3],
 
-                }
+                };
                 verses.push(verse);
+            });
 
-            })
-            
+            for (const value in Object.values(Books)) {
+                const chapt = verses.filter(x => x.chapter_nr === value);
+                if (chapt.length > 0) {
+                    const Book: IBook = {
+                        id:value,
+                        chapters: new Array<IChapter>()
+                    }
+                    const versos: Array<IVerse> = new Array<IVerse>()
+                    chapt.map(c => {
+                       
+                        const v: IVerse = {
+                            id: c.verse_nr,
+                            direction:
+                                c.direction,
+                            text: c.verse
+                        };
+                        versos.push(v);
+
+                    });
+                    const chapter: IChapter = {
+                        id: value,
+                        verses: versos
+                    }
+                    Book.chapters.push(chapter)
+                    if (bible.books) {
+                        bible.books.push(Book);
+                    } else
+                        bible.books = [Book]
+
+
+                }
+
+            }
+
         }
+
+        bibles.push(bible)
     } catch (error) {
         throw new Error(error);
 
     }
 
-     return verses;
+    return verses;
 
 }
+
